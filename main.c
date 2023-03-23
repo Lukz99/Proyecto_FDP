@@ -178,19 +178,4 @@ void cancelarCompra(){
     // Cancela todo, el cliente se va sin comprar nada
 }
 
-/*
-
-1_ INICIAR SESION
-2_ CAMBIAR MUSICA
-3_ CREAR COMPRA
-
-
-
-
-
-
-1_ USUARIO: LUCAS
-2_ CONTRASEÑA: 1234
-*/
-
 
