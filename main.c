@@ -1,7 +1,5 @@
 #include <stdio.h>
 
-// Primer modificacion test
-
 struct Producto {
     char codigo[10];
     int cantidad;
@@ -11,34 +9,44 @@ struct Producto {
 void mostrarMenu();
 void iniciarSesion();
 void mostrarMenuCajero();
+//void mostrarMenuEncargado();
 void crearPedido();
 void escanearCodigo(struct Producto listaCompra[50]);
 void agregarProducto(int cantidad, int codigo, struct Producto listaCompra[50]);
-void cancelarCompra();
 void borrarProducto();
+void cancelarCompra();
+void terminarCompra();
+void pagarCompra();
+void pagoEnEfectivo();
 
 
 int main(void){
     mostrarMenu();
+    return 0;
 }
 
 void mostrarMenu(){
-    int opcion;
-    printf("1_ Iniciar sesion\n");
-    printf("2_ Iniciar sesion\n");
-    printf("1_ Iniciar sesion\n");
-    printf("1_ Iniciar sesion\n");
-    printf("1_ Iniciar sesion\n");
-    printf("Ingrese opcion: ");
-    scanf("%d", &opcion);
+    int opcion = 1;
+    while (opcion != 0){
+        printf("\tMENU PRINCIPAL\n");
+        printf("1_ Iniciar sesion\n");
+        printf("2_ Informacion del supermercado\n");
+        printf("3_ Llamar a Soporte Técnico\n");
+        printf("0_ Salir\n");
+        printf("Ingrese opcion: ");
+        scanf("%d", &opcion);
 
-    printf("La opcion ingresada fue: %d\n", opcion);
+        printf("La opcion ingresada fue: %d\n", opcion);
 
-    switch (opcion) {
-        case 1:
-            iniciarSesion();
-            break;
-        case 2:
+        switch (opcion) {
+            case 1:
+                iniciarSesion();
+                break;
+            case 2:
+                printf("\n\nDirección: Gutiérrez 1150\nCiudad: Los Polvorines\nTeléfono: 11-4020-1234\nHorarios: Lunes a Sábado de 08:00 a 22:00 hs\n\n");
+                break;
+
+        }
 
     }
 }
@@ -56,8 +64,8 @@ void iniciarSesion(){
 
 void mostrarMenuCajero(){
     int opcion;
-
-    printf("1_ Crear pedido\n");
+    printf("\n\tMENU CAJERO\n");
+    printf("\n1_ Crear pedido\n");
     printf("2_ ...\n");
 
     printf("Ingrese opcion: ");
@@ -99,10 +107,6 @@ void crearPedido(){
             cancelarCompra();
             break;
     }
-}
-
-void cancelarCompra(){
-    // Cancela todo, el cliente se va sin comprar nada
 }
 
 void borrarProducto(){
@@ -170,6 +174,9 @@ void agregarProducto(int cantidadProducto, int codigoProducto, struct Producto l
 
 }
 
+void cancelarCompra(){
+    // Cancela todo, el cliente se va sin comprar nada
+}
 
 /*
 
