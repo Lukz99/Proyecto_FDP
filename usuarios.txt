@@ -1,2 +1,2 @@
-lucas, 1234
-BARBI, 1234
+lucas
+BARBI

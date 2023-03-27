@@ -1,15 +1,29 @@
 #include <stdio.h>
+#include <string.h>
 
+#define MAX 20
+
+// Estructuras
 struct Producto {
     char codigo[10];
     int cantidad;
     int precio;
 };
 
-void mostrarMenu();
+struct Cajero {
+    char nombre[MAX];
+    char password[MAX];
+};
+
+// Variables globales
+int linea = 0;
+struct Cajero listaCajeros[MAX];
+
+// Prototipos
+int cargarCajeros();
+void mostrarMenuPrincipal();
 void iniciarSesion();
 void mostrarMenuCajero();
-//void mostrarMenuEncargado();
 void crearPedido();
 void escanearCodigo(struct Producto listaCompra[50]);
 void agregarProducto(int cantidad, int codigo, struct Producto listaCompra[50]);
@@ -21,11 +35,59 @@ void pagoEnEfectivo();
 
 
 int main(void){
-    mostrarMenu();
+    cargarCajeros();
+    char name[30];
+    fgets(name, MAX, stdin);
+    name[strcspn(name, "\n")] = '\0'; // remove newline character
+    for (int i = 0; i < linea; i++){
+        printf("User: %s", listaCajeros[i].nombre);
+        printf("Contraseña: %s\n", listaCajeros[i].password);
+        if (strcmp(listaCajeros[i].nombre, name) == 0) {
+            printf("usuario lucas valido\n");
+        }   else {
+            printf ("NO LUCAS \n");
+        }
+        
+    }
+
+
+    //mostrarMenuPrincipal();
     return 0;
 }
 
-void mostrarMenu(){
+int cargarCajeros(){
+    FILE *archivoUsuarios = NULL;
+    FILE *archivoPasswords = NULL;     
+
+    archivoUsuarios = fopen("usuarios.txt", "r");
+    archivoPasswords = fopen("passwords.txt", "r");
+    if (archivoUsuarios == NULL || archivoPasswords == NULL) {
+        printf("No fue posible abrir el o los archivo\n");
+        return 1;
+    } 
+    
+    // buffer para leer las lineas de archivos y remover el ultimo char
+    char buffer[MAX];
+
+    while (linea < MAX && fgets(listaCajeros[linea].nombre, MAX, archivoUsuarios) != NULL
+    && fgets(listaCajeros[linea].password, MAX, archivoPasswords) != NULL) {
+        //buffer[strcspn(buffer, "\n")] = '\0'; // borra el \n
+        //strncpy(listaCajeros[linea].nombre, buffer, MAX); // copia el string modificado al array de cajeros
+        
+        //strncpy(listaCajeros[linea].password, buffer, MAX); // 
+        
+
+        linea++;
+    }
+
+
+
+    fclose(archivoUsuarios);
+    fclose(archivoPasswords);
+    return 0;
+}
+
+void mostrarMenuPrincipal(){
     int opcion = 1;
     while (opcion != 0){
         printf("\tMENU PRINCIPAL\n");
