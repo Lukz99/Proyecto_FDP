@@ -3,6 +3,8 @@
 
 #define MAX 20
 
+////////////////////// MIRAR !buffer[strcspn(buffer, "\n")] = 0;
+
 // Estructuras
 struct Producto {
     char codigo[10];
@@ -16,13 +18,13 @@ struct Cajero {
 };
 
 // Variables globales
-int linea = 0;
-struct Cajero listaCajeros[MAX];
+
+
 
 // Prototipos
-int cargarCajeros();
+int cargarCajeros(struct Cajero *listaCajeros, int *linea);
 void mostrarMenuPrincipal();
-void iniciarSesion();
+void iniciarSesion(struct Cajero *listaCajeros, int *linea);
 void mostrarMenuCajero();
 void crearPedido();
 void escanearCodigo(struct Producto listaCompra[50]);
@@ -35,27 +37,21 @@ void pagoEnEfectivo();
 
 
 int main(void){
-    cargarCajeros();
-    char name[30];
-    fgets(name, MAX, stdin);
-    name[strcspn(name, "\n")] = '\0'; // remove newline character
-    for (int i = 0; i < linea; i++){
-        printf("User: %s", listaCajeros[i].nombre);
-        printf("Contraseña: %s\n", listaCajeros[i].password);
-        if (strcmp(listaCajeros[i].nombre, name) == 0) {
-            printf("usuario lucas valido\n");
-        }   else {
-            printf ("NO LUCAS \n");
-        }
-        
-    }
+    int linea = 0;
+    int* pLinea = &linea;
+    struct Cajero listaCajeros[MAX];
+    cargarCajeros(listaCajeros, &linea);
+    printf("linea vale: %d\n", linea);
+    iniciarSesion(listaCajeros, &linea);
+
+    
 
 
     //mostrarMenuPrincipal();
     return 0;
 }
 
-int cargarCajeros(){
+int cargarCajeros(struct Cajero *listaCajeros, int *linea){
     FILE *archivoUsuarios = NULL;
     FILE *archivoPasswords = NULL;     
 
@@ -65,23 +61,12 @@ int cargarCajeros(){
         printf("No fue posible abrir el o los archivo\n");
         return 1;
     } 
-    
-    // buffer para leer las lineas de archivos y remover el ultimo char
-    char buffer[MAX];
-
-    while (linea < MAX && fgets(listaCajeros[linea].nombre, MAX, archivoUsuarios) != NULL
-    && fgets(listaCajeros[linea].password, MAX, archivoPasswords) != NULL) {
-        //buffer[strcspn(buffer, "\n")] = '\0'; // borra el \n
-        //strncpy(listaCajeros[linea].nombre, buffer, MAX); // copia el string modificado al array de cajeros
-        
-        //strncpy(listaCajeros[linea].password, buffer, MAX); // 
-        
-
-        linea++;
+    while (*linea < MAX && fgets(listaCajeros[*linea].nombre, MAX, archivoUsuarios) != NULL
+    && fgets(listaCajeros[*linea].password, MAX, archivoPasswords) != NULL) {
+        listaCajeros[*linea].nombre[strcspn(listaCajeros[*linea].nombre, "\n")] = '\0';
+        listaCajeros[*linea].password[strcspn(listaCajeros[*linea].password, "\n")] = '\0';       
+        (*linea)++;
     }
-
-
-
     fclose(archivoUsuarios);
     fclose(archivoPasswords);
     return 0;
@@ -102,19 +87,42 @@ void mostrarMenuPrincipal(){
 
         switch (opcion) {
             case 1:
-                iniciarSesion();
+                //iniciarSesion();
                 break;
             case 2:
                 printf("\n\nDirección: Gutiérrez 1150\nCiudad: Los Polvorines\nTeléfono: 11-4020-1234\nHorarios: Lunes a Sábado de 08:00 a 22:00 hs\n\n");
                 break;
-
         }
 
     }
 }
 
-void iniciarSesion(){
-
+void iniciarSesion(struct Cajero *listaCajeros, int* linea){
+    char usuarioInput[MAX];
+    char passwordInput[MAX];
+    printf("\tINICIO DE SESION\n\n");
+    printf("\nUsuario: ");
+    fgets(usuarioInput, sizeof(usuarioInput), stdin);
+    printf("\nContraseña: ");
+    fgets(passwordInput, sizeof(passwordInput), stdin);
+    usuarioInput[strcspn(usuarioInput, "\n")] = '\0'; // borra el \n del input
+    passwordInput[strcspn(passwordInput, "\n")] = '\0';
+    printf("ingresaste:%s\n",usuarioInput);
+    if (strcmp("ADMIN", usuarioInput) == 0 && strcmp("ADMIN", passwordInput) == 0){
+        printf("\n\t\tPrivilegios de ADMIN otorgados\n");
+        //mostrarMenuAdmin();
+    } 
+    for (int i = 0; i < *linea; i++){
+        printf("User: %s", listaCajeros[i].nombre);
+        printf("Contraseña: %s\n", listaCajeros[i].password);
+        if (strcmp(listaCajeros[i].nombre, usuarioInput) == 0) { //devuelve 0 cuando usuarioInput y el nombre guardado en el array son iguales
+            printf("Usuario encontrado\n");
+        }   else {
+            printf ("NO LUCAS \n");
+        }
+    }
+    
+    
     // Inicia sesion un cajero
 
     mostrarMenuCajero();
