@@ -18,6 +18,7 @@
 
 
 // Estructuras
+
 struct Producto {
     char nombre[MAX_PRODUCTO];
     int codigo;
@@ -129,8 +130,6 @@ void mostrarMenuPrincipal(struct Cajero* listaCajeros, int* punteroLinea){
         
         
         scanf("%d", &opcion);
-
-        printf("La opcion ingresada fue: %d\n", opcion);
 
         switch (opcion) {
             case 0:
@@ -249,12 +248,12 @@ void mostrarMenuCajero(){
     }   
 }
 
-void crearPedido(){
-    fflush(stdin);
+void crearPedido(){    
     struct Producto listaCompra[MAX_PRODUCTO];
     int productosComprados = 0;
     int opcion = -1;
     while (opcion != 0) {
+        fflush(stdin);
         LIMPIAR;
         printf("\t\t\t\t MENU DE COMPRA\n\n");
         printf("1_ Escanear codigo\n");
@@ -284,7 +283,6 @@ void crearPedido(){
     }
     
 }
-
 
 int escanearCodigo(struct Producto *listaCompra, struct Producto *productos, int productosComprados) {
     
@@ -360,8 +358,6 @@ int escanearCodigo(struct Producto *listaCompra, struct Producto *productos, int
     return productosComprados;
 }
 
-
-
 void borrarProducto(){
     LIMPIAR;
     printf("Para borrar un producto de los escaneados,\n"
@@ -384,6 +380,7 @@ void terminarCompra(struct Producto *listaCompra, int productosComprados){
 void pagarCompra(struct Producto *listaCompra, int precioFinal, int productosComprados) {
     int opcion = -1;
     while (opcion != 0) {
+        fflush(stdin);
         LIMPIAR;
         printf("El cliente debe pagar %d pesos. Seleccione metodo de pago:\n", precioFinal);
         printf("1_ Efectivo\n");
@@ -428,7 +425,6 @@ void pagoEnEfectivo(struct Producto *listaCompra, int precioFinal, int productos
     sleep(3);    
     mostrarMenuCajero();
 }
-
 
 void emitirTicket(struct Producto *listaCompra, int precioFinal, int productosComprados) {
     char nombreArchivo[50];
