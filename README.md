@@ -1,4 +1,3 @@
-/*
 *   Autores:    Luna,           Barbara  
 *               Ledesma Jurado, Lucas
 *
@@ -8,4 +7,3 @@
 *   ubicación que main.c
 *
 *
-*/
