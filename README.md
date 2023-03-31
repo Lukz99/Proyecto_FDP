@@ -1,4 +1,5 @@
-*   Autores:    Luna,           Barbara  
+*   Autores:    
+*               Luna,           Barbara  
 *               Ledesma Jurado, Lucas
 *
 *   GitHub:     https://github.com/Lukz99/Proyecto_FDP
