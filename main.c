@@ -4,13 +4,13 @@
 #include <unistd.h>
 
 #define MAX_CAJERO 20
-#define MAX_PRODUCTO 50
+#define MAX_PRODUCTO 11
 #define LIMPIAR system("clear")
 
 
 // Estructuras
 struct Producto {
-    char nombre[20];
+    char nombre[MAX_PRODUCTO];
     int codigo;
     int cantidad;
     int precio;
@@ -21,47 +21,65 @@ struct Cajero {
     char password[MAX_CAJERO];
 };
 
+// Variables globales
+
+struct Producto listaProductos[MAX_PRODUCTO];
+int cantidadProductos;
+
 // Prototipos
 
 int cargarCajeros(struct Cajero* listaCajeros, int* linea);
-int cargarStock();
+int cargarStock(struct Producto* productos);
 void mostrarMenuPrincipal(struct Cajero* listaCajeros, int* linea);
 void iniciarSesion(struct Cajero* listaCajeros, int* linea);
 void mostrarInfoSuper();
-void llamarSoporte();
+void llamarSoporte(char soporte[]);
 void mostrarMenuCajero();
 void mostrarMenuEncargado();
 void crearPedido();
-void escanearCodigo(struct Producto listaCompra[50]);
+int escanearCodigo(struct Producto* listaCompra, struct Producto* productos, int productosComprados);
 void agregarProducto(int cantidad, int codigo, struct Producto listaCompra[50]);
 void borrarProducto();
 void cancelarCompra();
 void terminarCompra();
 void pagarCompra();
 void pagoEnEfectivo();
+int contarTiempo(int tiempo);
+
+// Funciones
 
 
 int main(void) {
+    
     int linea = 0;
     int* punteroLinea = &linea;
     struct Cajero listaCajeros[MAX_CAJERO];
-    struct Producto listaCompra[50];
-    cargarStock();
+    
+    cargarStock(listaProductos);
     cargarCajeros(listaCajeros, punteroLinea);
     
     mostrarMenuPrincipal(listaCajeros, punteroLinea);
     return 0;    
 }
 
-int cargarStock() {
+int cargarStock(struct Producto *productos) {
     FILE *archivoStock = NULL;
-
+    int numProductos = 0;
     archivoStock = fopen("stock.txt", "r");
     if (!archivoStock) {
-        printf("No fue posible cargar el Stock.\n");
-        return 1;
+        printf("No fue posible cargar el Stock\n");
+        sleep(2);
+        exit (1);
     } 
 
+    while (numProductos < MAX_PRODUCTO && fscanf(archivoStock, "%s %d %d %d", productos[numProductos].nombre, &productos[numProductos].codigo, &productos[numProductos].cantidad, &productos[numProductos].precio) == 4) {
+        //printf("Nombre: %s \tCodigo: %d \tCantidad: %d \tPrecio: %d\n", productos[numProductos].nombre, productos[numProductos].codigo, productos[numProductos].cantidad, productos[numProductos].precio);
+        numProductos++;
+        
+    }
+    cantidadProductos = numProductos;
+    printf("cantidadProductos vale: %d", cantidadProductos);
+    sleep(2);
 }
 
 int cargarCajeros(struct Cajero* listaCajeros, int* linea) {
@@ -71,8 +89,9 @@ int cargarCajeros(struct Cajero* listaCajeros, int* linea) {
     archivoUsuarios = fopen("usuarios.txt", "r");
     archivoPasswords = fopen("passwords.txt", "r");
     if (!archivoUsuarios || !archivoPasswords) {
-        printf("No fue posible abrir el o los archivo\n");
-        return 1;
+        printf("No fue posible abrir el o los archivos\n");
+        sleep(2);
+        exit(1);
     } 
     while (*linea < MAX_CAJERO && fgets(listaCajeros[*linea].nombre, MAX_CAJERO, archivoUsuarios) != NULL
     && fgets(listaCajeros[*linea].password, MAX_CAJERO, archivoPasswords) != NULL) {
@@ -90,12 +109,13 @@ void mostrarMenuPrincipal(struct Cajero* listaCajeros, int* punteroLinea){
     while (opcion != 0){
         LIMPIAR;
         fflush(stdin);
-        printf("\t\t\t\t\tMENU PRINCIPAL\n");
+        printf("\t\t\t\t\tMENU PRINCIPAL\n");        
         printf("1_ Iniciar sesion\n");
         printf("2_ Informacion del supermercado\n");
-        printf("3_ Llamar a Soporte Técnico\n");
-        printf("0_ Salir\n");
+        printf("3_ Llamar a Soporte Técnico\n"); 
+        printf("\n0_ Salir\n");       
         printf("Ingrese opcion: ");
+        
         
         scanf("%d", &opcion);
 
@@ -112,7 +132,7 @@ void mostrarMenuPrincipal(struct Cajero* listaCajeros, int* punteroLinea){
                 mostrarInfoSuper();
                 break;
             case 3:
-                llamarSoporte();
+                llamarSoporte("soporte técnico");
                 break;
             default:
                 printf("Opcion incorrecta, ingrese nuevamente");
@@ -122,21 +142,44 @@ void mostrarMenuPrincipal(struct Cajero* listaCajeros, int* punteroLinea){
     }
 }
 
-void llamarSoporte(){
+void llamarSoporte(char soporte[]){
     LIMPIAR;
-    printf("Llamando a soporte técnico. Aguarde por favor...");
+    printf("Llamando al %s. Aguarde por favor...", soporte);
     sleep(3);
 }
 
 void mostrarInfoSuper(){
-    //printf("\n\nDirección: Gutiérrez 1150\nCiudad: Los Polvorines\nTeléfono: 11-4020-1234\nHorarios: Lunes a Sábado de 08:00 a 22:00 hs\n\n");
     LIMPIAR;
     printf("\n\n"
         "Dirección: Gutiérrez 1150\n"
         "Ciudad: Los Polvorines\n"
         "Teléfono: 11-4020-1234\n"
-        "Horarios: Lunes a Sábado de 08:00 a 22:00 hs\n\n");
-    sleep(3);
+        "Horarios: Lunes a Sábado de 08:00 a 22:00 hs\n");
+    printf("\n\n\n\n");
+    sleep(2);
+    //contarTiempo(-3);
+    
+    
+
+}
+
+int contarTiempo(int tiempo) {
+    if (tiempo == 0) {
+        return 0;
+    } else if (tiempo < 0) {
+        for (-tiempo; tiempo >= 0; tiempo--) {
+            printf("%d\r", tiempo);
+            //fflush(stdout);
+            sleep(-tiempo);
+        }
+    } else {
+        for (tiempo; tiempo <= 0; tiempo++) {
+            printf("%d\r", tiempo);
+            //fflush(stdout);
+            sleep(tiempo);
+        }
+    }
+    return 0;
 }
 
 void iniciarSesion(struct Cajero *listaCajeros, int* linea) {
@@ -166,13 +209,13 @@ void iniciarSesion(struct Cajero *listaCajeros, int* linea) {
         } 
 
         for (int i = 0; i < *linea; i++){
-            printf("User: %s", listaCajeros[i].nombre);
-            printf("Contraseña: %s\n", listaCajeros[i].password);
+            //printf("User: %s", listaCajeros[i].nombre); MOSTRAR USER Y PASS
+            //printf("Contraseña: %s\n", listaCajeros[i].password);
             
             // strcmp devuelve 0 cuando usuarioInput y el nombre guardado en el array son iguales
             if (strcmp(listaCajeros[i].nombre, usuarioInput) == 0 && strcmp(listaCajeros[i].password, passwordInput) == 0) { 
                 loginCorrecto = 1;
-                printf("\n\t\t\t\t¡Bienvenido %s!", listaCajeros[i].nombre);
+                printf("\n\t\t\t\t¡Bienvenid@ %s!", listaCajeros[i].nombre);
                 sleep(3);
                 mostrarMenuCajero();
             } 
@@ -189,55 +232,155 @@ void mostrarMenuEncargado(){
 }
 
 void mostrarMenuCajero(){
-    int opcion = 1;
+    int opcion = -1;
     while (opcion != 0){
+        LIMPIAR;        
+        fflush(stdin);
+        printf("\t\t\t\tMENU CAJERO\n");        
+        printf("1_ Crear pedido\n");
+        printf("2_ Llamar al encargado\n"); 
+
+        printf("\n0_ Cerrar sesión\n");       
+        
+        printf("Ingrese opcion: ");
+        scanf("%d", &opcion);
+
+        switch (opcion) {
+            case 0:                
+                break;
+            case 1:
+                crearPedido();
+                break;
+            case 2:
+                llamarSoporte("encargado");
+                break;            
+            default:
+                printf("Opcion incorrecta, ingrese nuevamente");
+                sleep(2);
+        }
+    }   
+}
+
+void crearPedido(){
+    fflush(stdin);
+    struct Producto listaCompra[MAX_PRODUCTO];
+    int productosComprados = 0;
+    int opcion = -1;
+    while (opcion != 0) {
         LIMPIAR;
-        int opcion;
-        printf("\n\tMENU CAJERO\n");
-        printf("\n1_ Crear pedido\n");
-        printf("2_ ...\n");
+        printf("1_ Escanear codigo\n");
+        printf("2_ Borrar producto\n");
+        printf("3_ Terminar compra\n");
+        printf("\n0_ Cancelar compra\n");
 
         printf("Ingrese opcion: ");
         scanf("%d", &opcion);
         
         switch (opcion) {
+            case 0:
+                break;
             case 1:
-                crearPedido();
+                productosComprados = escanearCodigo(listaCompra, listaProductos, productosComprados);
+
                 break;
             case 2:
-
+                borrarProducto();
+                break;
+            case 3:
+                //terminarCompra(Producto listaCompra);
+                break;
+            default:
+                printf("Opcion incorrecta, ingrese nuevamente");
+                sleep(2);
         }
     }
-
+    
 }
 
-void crearPedido(){
-    
 
-    int opcion;
-    printf("1_ Escanear codigo\n");
-    printf("2_ Borrar producto\n");
-    printf("3_ Terminar compra\n");
-    printf("4_ Cancelar compra\n");
-
-    printf("Ingrese opcion: ");
-    scanf("%d", &opcion);
+int escanearCodigo(struct Producto *listaCompra, struct Producto *productos, int productosComprados) {
     
-    switch (opcion) {
-        case 1:
-            //escanearCodigo(&listaCompra[50]);
-            break;
-        case 2:
-            borrarProducto();
-            break;
-        case 3:
-            //terminarCompra(Producto listaCompra);
-            break;
-        case 4:
-            cancelarCompra();
-            break;
+    int productoCorrecto = 0;
+    int numeroProducto = NULL;
+
+    int cantidadCompra;
+    int codigoCompra;
+    char nombreCompra[MAX_PRODUCTO];
+    
+    fflush(stdin);
+
+    LIMPIAR;
+    printf("\t\t\t\tSTOCK ACTUAL\n");
+    int nP=0;
+    while (nP < cantidadProductos) {
+        printf("Nombre: %s \tCodigo: %d \tCantidad: %d \tPrecio: %d\n", listaProductos[nP].nombre, listaProductos[nP].codigo, listaProductos[nP].cantidad, listaProductos[nP].precio);
+        nP++;
     }
+    
+    
+
+    printf("Ingrese codigo o nombre del producto: ");
+    if (scanf("%d", &codigoCompra) != 1) {              
+        // Si no se ingresó un número, se asume que se ingresó el nombre del producto
+        // Entra al 'if' en caso de que se escriba un nombre   
+        scanf("%s", nombreCompra);
+        for (int i = 0; i < cantidadProductos; i++) {
+            if (strcmp(productos[i].nombre, nombreCompra) == 0) { 
+                // strcmp devuelve 0 cuando el nombre ingresado del producto es igual al del array en [i]
+                numeroProducto = i; 
+                productoCorrecto = 1;           
+                strcpy(listaCompra[productosComprados].nombre, nombreCompra); // Se guarda el nombre en listaCompra
+                listaCompra[productosComprados].codigo = productos[i].codigo; // le asigno el mismo codigo del que coincide en nombre
+                productosComprados++;       
+                sleep(3);
+            } 
+        }
+    } else { // Entra al 'else' en caso de que se escriba un código numérico
+        for (int i = 0; i < cantidadProductos; i++) {
+            if (productos[i].codigo == codigoCompra) {
+                numeroProducto = i; 
+                productoCorrecto = 1;                
+                listaCompra[productosComprados].codigo = codigoCompra;                
+                strcpy(listaCompra[productosComprados].nombre, productos[i].nombre);
+                productosComprados++;                
+                sleep(3);
+            } 
+        }
+    } 
+
+    
+
+    if (!productoCorrecto) {
+            printf("\nProducto no encontrado. Ingrese nuevamente...\n");
+            sleep(2);
+        }
+
+
+
+    
+    printf("Ingrese cantidad: ");
+    scanf("%d", &cantidadCompra);
+
+    listaCompra[productosComprados-1].cantidad = cantidadCompra;
+    productos[numeroProducto].cantidad -= cantidadCompra;
+
+    listaCompra[productosComprados-1].precio = productos[numeroProducto].precio;
+    
+    printf("COMPRA PARCIAL \n\n\n\n\n\n");
+    for (int a = 0; a < productosComprados; a++)    {
+        printf("Nombre: %s\t", listaCompra[a].nombre);
+        printf("Codigo: %d\t", listaCompra[a].codigo);
+        printf("Cantidad: %d\t", listaCompra[a].cantidad);
+        printf("Precio: %d\t\n", listaCompra[a].precio);
+    }
+    
+    sleep(5);
+
+    return productosComprados;
+    //agregarProducto(cantidad, codigo[10], listaCompra);
 }
+
+
 
 void borrarProducto(){
     // Modifica listaCompra para eliminar un producto o bajar su cantidad
@@ -283,20 +426,6 @@ void pagoEnEfectivo(int precioFinal){
     printf("Devolver al cliente %d pesos", vuelto);
 }
 
-void escanearCodigo(struct Producto listaCompra[50]){
-    int cantidad;
-    char codigo[10];
-
-    printf("Ingrese cantidad: \n");
-    scanf("%d", &cantidad);
-
-    printf("Ingrese codigo del producto: \n");
-    scanf("%d", &codigo);    
-    
-
-    agregarProducto(cantidad, codigo[10], listaCompra);
-}
-
 void agregarProducto(int cantidadProducto, int codigoProducto, struct Producto listaCompra[50]){
     // Agregar Producto a la lista de compra
     
@@ -305,7 +434,7 @@ void agregarProducto(int cantidadProducto, int codigoProducto, struct Producto l
 }
 
 void cancelarCompra(){
-    // Cancela todo, el cliente se va sin comprar nada
+    // TODO
 }
 
 
