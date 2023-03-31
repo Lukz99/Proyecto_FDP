@@ -16,7 +16,6 @@
 #define MAX_PRODUCTO 11
 #define LIMPIAR system("clear")
 
-
 // Estructuras
 
 struct Producto {
