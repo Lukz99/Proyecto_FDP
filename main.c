@@ -1,6 +1,6 @@
 /*
-*   Autores:    Barbara, xxx    
-*               Lucas, Ledesma Jurado
+*   Autores:    Luna,           Barbara  
+*               Ledesma Jurado, Lucas
 *
 *   GitHub:     https://github.com/Lukz99/Proyecto_FDP
 *
@@ -52,6 +52,7 @@ void borrarProducto();
 void terminarCompra(struct Producto* listaCompra, int productosComprados);
 void pagarCompra(struct Producto* listaCompra, int pagarTotal, int productosComprados);
 void pagoEnEfectivo(struct Producto* listaCompra, int precioFinal, int productosComprados);
+void pagoConTarjeta();
 void emitirTicket(struct Producto* listaCompra, int precioFinal, int productosComprados);
  
 
@@ -90,8 +91,6 @@ int cargarStock(struct Producto *productos) {
         numProductos++;
     }
     cantidadProductos = numProductos;
-    printf("cantidadProductos vale: %d", cantidadProductos);
-    sleep(2);
 }
 
 int cargarCajeros(struct Cajero* listaCajeros, int* linea) {
@@ -193,18 +192,13 @@ void iniciarSesion(struct Cajero *listaCajeros, int* linea) {
         fgets(passwordInput, sizeof(passwordInput), stdin);        
         passwordInput[strcspn(passwordInput, "\n")] = '\0';
 
-        printf("ingresaste:%s\n",usuarioInput);
-
         if (strcmp("ADMIN", usuarioInput) == 0 && strcmp("ADMIN", passwordInput) == 0) {
             loginCorrecto = 1;
             printf("\n\t\tPrivilegios de ADMIN otorgados\n");            
             mostrarMenuEncargado();
         } 
 
-        for (int i = 0; i < *linea; i++){
-            //printf("User: %s", listaCajeros[i].nombre); MOSTRAR USER Y PASS
-            //printf("Contraseña: %s\n", listaCajeros[i].password);
-            
+        for (int i = 0; i < *linea; i++){            
             // strcmp devuelve 0 cuando usuarioInput y el nombre guardado en el array son iguales
             if (strcmp(listaCajeros[i].nombre, usuarioInput) == 0 && strcmp(listaCajeros[i].password, passwordInput) == 0) { 
                 loginCorrecto = 1;
@@ -213,6 +207,7 @@ void iniciarSesion(struct Cajero *listaCajeros, int* linea) {
                 mostrarMenuCajero();
             } 
         }
+
         if (!loginCorrecto) {
             printf("\nUsuario o contraseña incorrectos. Por favor intente nuevamente.\n");
             sleep(3);
@@ -405,10 +400,10 @@ void pagarCompra(struct Producto *listaCompra, int precioFinal, int productosCom
                 pagoEnEfectivo(listaCompra, precioFinal, productosComprados);
                 break;
             case 2:
-                //pagoConTarjeta();
+                pagoConTarjeta();
                 break;
             case 3:
-                //pagoConTarjeta();
+                pagoConTarjeta();
                 break;
             default:
                 printf("Opción incorrecta. Ingrese nuevamente.\n");
@@ -417,14 +412,18 @@ void pagarCompra(struct Producto *listaCompra, int precioFinal, int productosCom
     }
 }
 
-void pagoEnEfectivo(struct Producto *listaCompra, int precioFinal, int productosComprados){
+void pagoConTarjeta() {
+    printf("No hay sistema. Solicite pago en efectivo.");
+    sleep(2);
+}
+
+void pagoEnEfectivo(struct Producto *listaCompra, int precioFinal, int productosComprados) {
     int efectivo;
     int vuelto;
     printf("Ingrese con cuanto paga el usuario: \n");
     scanf("%d", &efectivo);
     vuelto = efectivo - precioFinal;
     printf("Devolver al cliente %d pesos\n\n", vuelto);
-    printf("\t\t\t\t¡Gracias por su compra!");
     emitirTicket(listaCompra, precioFinal, productosComprados);
     sleep(3);    
     mostrarMenuCajero();
@@ -444,6 +443,8 @@ void emitirTicket(struct Producto *listaCompra, int precioFinal, int productosCo
     }
     printf("Ingrese nombre del cliente: ");
     scanf("%s", nombreCliente);
+
+    printf("\n\t\t\t¡Gracias por su compra %s!", nombreCliente);
     for (int i = 0; i < productosComprados; i++) {
         fprintf(archivoTicket, "Nombre: %-10s\tCodigo: %d\tCantidad: %d\tPrecio: %d\n", 
         listaCompra[i].nombre, 
