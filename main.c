@@ -34,6 +34,7 @@ struct Cajero {
 
 struct Producto listaProductos[MAX_PRODUCTO];
 int cantidadProductos;
+int contadorTickets = 0;
 
 // Prototipos
 
@@ -48,14 +49,13 @@ void mostrarMenuEncargado();
 void crearPedido();
 int escanearCodigo(struct Producto* listaCompra, struct Producto* productos, int productosComprados);
 void borrarProducto();
-void cancelarCompra();
 void terminarCompra(struct Producto* listaCompra, int productosComprados);
-void pagarCompra(int pagarTotal);
-void pagoEnEfectivo();
-int contarTiempo(int tiempo);
+void pagarCompra(struct Producto* listaCompra, int pagarTotal, int productosComprados);
+void pagoEnEfectivo(struct Producto* listaCompra, int precioFinal, int productosComprados);
+void emitirTicket(struct Producto* listaCompra, int precioFinal, int productosComprados);
+ 
 
 // Funciones
-
 
 int main(void) {
     
@@ -175,25 +175,6 @@ void mostrarInfoSuper(){
 
 }
 
-int contarTiempo(int tiempo) {
-    if (tiempo == 0) {
-        return 0;
-    } else if (tiempo < 0) {
-        for (-tiempo; tiempo >= 0; tiempo--) {
-            printf("%d\r", tiempo);
-            //fflush(stdout);
-            sleep(-tiempo);
-        }
-    } else {
-        for (tiempo; tiempo <= 0; tiempo++) {
-            printf("%d\r", tiempo);
-            //fflush(stdout);
-            sleep(tiempo);
-        }
-    }
-    return 0;
-}
-
 void iniciarSesion(struct Cajero *listaCajeros, int* linea) {
     fflush(stdin);
     char usuarioInput[MAX_CAJERO];
@@ -280,6 +261,7 @@ void crearPedido(){
     int opcion = -1;
     while (opcion != 0) {
         LIMPIAR;
+        printf("\t\t\t\t MENU DE COMPRA\n\n");
         printf("1_ Escanear codigo\n");
         printf("2_ Borrar producto\n");
         printf("3_ Terminar compra\n");
@@ -323,7 +305,7 @@ int escanearCodigo(struct Producto *listaCompra, struct Producto *productos, int
     printf("\t\t\t\tSTOCK ACTUAL\n");
     
     while (contadorStock < cantidadProductos) {
-        printf("Nombre: %s \tCodigo: %d \tCantidad: %d \tPrecio: %d\n", listaProductos[contadorStock].nombre, listaProductos[contadorStock].codigo, listaProductos[contadorStock].cantidad, listaProductos[contadorStock].precio);
+        printf("Nombre: %-10s \tCodigo: %-6d \tCantidad: %-6d \tPrecio: %-6d\n", listaProductos[contadorStock].nombre, listaProductos[contadorStock].codigo, listaProductos[contadorStock].cantidad, listaProductos[contadorStock].precio);
         contadorStock++;
     } 
     
@@ -370,10 +352,13 @@ int escanearCodigo(struct Producto *listaCompra, struct Producto *productos, int
     LIMPIAR;
     printf("\t\t\t\t\tCOMPRA PARCIAL \n\n\n");
     for (int indiceProducto = 0; indiceProducto < productosComprados; indiceProducto++)    {
-        printf("Nombre: %s\t", listaCompra[indiceProducto].nombre);
-        printf("Codigo: %d\t", listaCompra[indiceProducto].codigo);
+
+        printf("Nombre: %-15s Codigo: %-6d Cantidad: %-6d Precio: %-6d\n", listaCompra[indiceProducto].nombre, listaCompra[indiceProducto].codigo, listaCompra[indiceProducto].cantidad, listaCompra[indiceProducto].precio);
+        /*printf("Nombre: %-20s", listaCompra[indiceProducto].nombre);
+        printf("Codigo: %-20d", listaCompra[indiceProducto].codigo);
         printf("Cantidad: %d\t", listaCompra[indiceProducto].cantidad);
-        printf("Precio: %d\t\n", listaCompra[indiceProducto].precio);
+        printf("Precio: %d\n", listaCompra[indiceProducto].precio);
+    */
     }    
     sleep(5);
 
@@ -384,8 +369,8 @@ int escanearCodigo(struct Producto *listaCompra, struct Producto *productos, int
 
 void borrarProducto(){
     LIMPIAR;
-    printf("Para borrar un producto de los escaneados,\n",
-    "por favor escanéelo nuevamente e ingrese una\n",
+    printf("Para borrar un producto de los escaneados,\n"
+    "por favor escanéelo nuevamente e ingrese una\n"
     "cantidad negativa según corresponda");
     sleep(5);
 }
@@ -397,15 +382,15 @@ void terminarCompra(struct Producto *listaCompra, int productosComprados){
     }
     printf("El total de su compra es: %d pesos\t", pagarTotal);
     sleep(2);
-    pagarCompra(pagarTotal);   
+    pagarCompra(listaCompra, pagarTotal, productosComprados);   
     
 }
 
-void pagarCompra(int pagarTotal) {
+void pagarCompra(struct Producto *listaCompra, int precioFinal, int productosComprados) {
     int opcion = -1;
     while (opcion != 0) {
         LIMPIAR;
-        printf("El cliente debe pagar %d pesos. Seleccione metodo de pago:\n", pagarTotal);
+        printf("El cliente debe pagar %d pesos. Seleccione metodo de pago:\n", precioFinal);
         printf("1_ Efectivo\n");
         printf("2_ Tarjeta de crédito\n");
         printf("3_ Tarjeta de débito\n");
@@ -417,7 +402,7 @@ void pagarCompra(int pagarTotal) {
             case 0:
                 break; 
             case 1:
-                pagoEnEfectivo(pagarTotal);
+                pagoEnEfectivo(listaCompra, precioFinal, productosComprados);
                 break;
             case 2:
                 //pagoConTarjeta();
@@ -432,73 +417,43 @@ void pagarCompra(int pagarTotal) {
     }
 }
 
-
-void pagarCompra1(int pagarTotal) {
-    int opcion = -1;
-    while (opcion!= 0) {
-        LIMPIAR;
-        printf("El cliente debe pagar %d pesos. Seleccione metodo de pago:\n", pagarTotal);
-        printf("1_ Efectivo\n");
-        printf("2_ Tarjeta de credito\n");    
-        printf("3_ Tarjeta de debito\n");
-
-        printf("\n 0_ Cancelar compra");
-        
-        printf("Ingrese opcion: ");
-        scanf("%d", &opcion);
-    
-        switch (opcion){
-            case 0:
-                int confirmarCancelar = -1;
-                while (confirmarCancelar != 1 && confirmarCancelar != 2) {
-                    LIMPIAR;
-                    printf("¿Está seguro de que desea cancelar la compra?\n");                    
-                    printf("1_ Si\n");
-                    printf("2_ No\n");
-                    scanf("%d", &confirmarCancelar);
-                    if (confirmarCancelar == 0) {
-                        printf("Volviendo al menu...");
-                        sleep(2);
-                        mostrarMenuCajero();
-                        break;
-                    } else if(confirmarCancelar == 2) {
-                        //
-                    } else {
-                        printf("Opcion invalida. Ingrese 1 o 2.");
-                        sleep(2);
-                    }
-                }                
-                break;
-            case 1:
-                pagoEnEfectivo(pagarTotal);
-                break;
-            case 2:
-                //pagoConTarjeta();
-                break;
-            case 3:
-                //pagoConTarjeta();
-                break;
-            default:
-                printf("Opcion incorrecta. Ingrese nuevamente");
-                sleep(2);
-            }
-    }
-}
-
-void pagoEnEfectivo(int precioFinal){
+void pagoEnEfectivo(struct Producto *listaCompra, int precioFinal, int productosComprados){
     int efectivo;
     int vuelto;
     printf("Ingrese con cuanto paga el usuario: \n");
     scanf("%d", &efectivo);
     vuelto = efectivo - precioFinal;
-    printf("Devolver al cliente %d pesos", vuelto);
-    sleep(3);
+    printf("Devolver al cliente %d pesos\n\n", vuelto);
+    printf("\t\t\t\t¡Gracias por su compra!");
+    emitirTicket(listaCompra, precioFinal, productosComprados);
+    sleep(3);    
     mostrarMenuCajero();
 }
 
 
-void cancelarCompra(){
-    // TODO
-}
+void emitirTicket(struct Producto *listaCompra, int precioFinal, int productosComprados) {
+    char nombreArchivo[50];
+    char nombreCliente[20];
+    sprintf(nombreArchivo, "Tickets/ticket_%d.txt", contadorTickets); // guarda "ticket_{contadorTickets}.txt" en nombreArchivo
+    contadorTickets++;
 
+    FILE* archivoTicket = fopen(nombreArchivo, "w");
+    if (archivoTicket == NULL) {
+        printf("Error al abrir el archivo.");
+        return;
+    }
+    printf("Ingrese nombre del cliente: ");
+    scanf("%s", nombreCliente);
+    for (int i = 0; i < productosComprados; i++) {
+        fprintf(archivoTicket, "Nombre: %-10s\tCodigo: %d\tCantidad: %d\tPrecio: %d\n", 
+        listaCompra[i].nombre, 
+        listaCompra[i].codigo,
+        listaCompra[i].cantidad, 
+        listaCompra[i].precio); // escribe en el archivo del ticket
+    }
+    fprintf(archivoTicket, "Cliente: %s\n", nombreCliente);
+    fprintf(archivoTicket,"-----------------------FIN-----DE----TICKET-------------------");
+
+    fclose(archivoTicket);
+}
 
