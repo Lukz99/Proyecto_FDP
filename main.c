@@ -1,3 +1,12 @@
+/*
+*   Autores:    Barbara, xxx    
+*               Lucas, Ledesma Jurado
+*
+*   GitHub:     https://github.com/Lukz99/Proyecto_FDP
+*
+*
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,11 +47,10 @@ void mostrarMenuCajero();
 void mostrarMenuEncargado();
 void crearPedido();
 int escanearCodigo(struct Producto* listaCompra, struct Producto* productos, int productosComprados);
-void agregarProducto(int cantidad, int codigo, struct Producto listaCompra[50]);
 void borrarProducto();
 void cancelarCompra();
-void terminarCompra();
-void pagarCompra();
+void terminarCompra(struct Producto* listaCompra, int productosComprados);
+void pagarCompra(int pagarTotal);
 void pagoEnEfectivo();
 int contarTiempo(int tiempo);
 
@@ -59,6 +67,7 @@ int main(void) {
     cargarCajeros(listaCajeros, punteroLinea);
     
     mostrarMenuPrincipal(listaCajeros, punteroLinea);
+
     return 0;    
 }
 
@@ -72,10 +81,13 @@ int cargarStock(struct Producto *productos) {
         exit (1);
     } 
 
-    while (numProductos < MAX_PRODUCTO && fscanf(archivoStock, "%s %d %d %d", productos[numProductos].nombre, &productos[numProductos].codigo, &productos[numProductos].cantidad, &productos[numProductos].precio) == 4) {
-        //printf("Nombre: %s \tCodigo: %d \tCantidad: %d \tPrecio: %d\n", productos[numProductos].nombre, productos[numProductos].codigo, productos[numProductos].cantidad, productos[numProductos].precio);
+    while (numProductos < MAX_PRODUCTO && fscanf(archivoStock, "%s %d %d %d",   
+                                                    productos[numProductos].nombre,
+                                                    &productos[numProductos].codigo,
+                                                    &productos[numProductos].cantidad,
+                                                    &productos[numProductos].precio) == 4)
+    {
         numProductos++;
-        
     }
     cantidadProductos = numProductos;
     printf("cantidadProductos vale: %d", cantidadProductos);
@@ -281,13 +293,12 @@ void crearPedido(){
                 break;
             case 1:
                 productosComprados = escanearCodigo(listaCompra, listaProductos, productosComprados);
-
                 break;
             case 2:
                 borrarProducto();
                 break;
             case 3:
-                //terminarCompra(Producto listaCompra);
+                terminarCompra(listaCompra, productosComprados);
                 break;
             default:
                 printf("Opcion incorrecta, ingrese nuevamente");
@@ -300,25 +311,22 @@ void crearPedido(){
 
 int escanearCodigo(struct Producto *listaCompra, struct Producto *productos, int productosComprados) {
     
-    int productoCorrecto = 0;
-    int numeroProducto = NULL;
+    int productoCorrecto    = 0;
+    int numeroProducto      = 0;
+    int cantidadCompra      = 0;
+    int codigoCompra        = 0;
+    int contadorStock       = 0;
+    char nombreCompra[MAX_PRODUCTO];    
 
-    int cantidadCompra;
-    int codigoCompra;
-    char nombreCompra[MAX_PRODUCTO];
-    
     fflush(stdin);
-
     LIMPIAR;
     printf("\t\t\t\tSTOCK ACTUAL\n");
-    int nP=0;
-    while (nP < cantidadProductos) {
-        printf("Nombre: %s \tCodigo: %d \tCantidad: %d \tPrecio: %d\n", listaProductos[nP].nombre, listaProductos[nP].codigo, listaProductos[nP].cantidad, listaProductos[nP].precio);
-        nP++;
-    }
     
+    while (contadorStock < cantidadProductos) {
+        printf("Nombre: %s \tCodigo: %d \tCantidad: %d \tPrecio: %d\n", listaProductos[contadorStock].nombre, listaProductos[contadorStock].codigo, listaProductos[contadorStock].cantidad, listaProductos[contadorStock].precio);
+        contadorStock++;
+    } 
     
-
     printf("Ingrese codigo o nombre del producto: ");
     if (scanf("%d", &codigoCompra) != 1) {              
         // Si no se ingresó un número, se asume que se ingresó el nombre del producto
@@ -332,7 +340,6 @@ int escanearCodigo(struct Producto *listaCompra, struct Producto *productos, int
                 strcpy(listaCompra[productosComprados].nombre, nombreCompra); // Se guarda el nombre en listaCompra
                 listaCompra[productosComprados].codigo = productos[i].codigo; // le asigno el mismo codigo del que coincide en nombre
                 productosComprados++;       
-                sleep(3);
             } 
         }
     } else { // Entra al 'else' en caso de que se escriba un código numérico
@@ -343,77 +350,138 @@ int escanearCodigo(struct Producto *listaCompra, struct Producto *productos, int
                 listaCompra[productosComprados].codigo = codigoCompra;                
                 strcpy(listaCompra[productosComprados].nombre, productos[i].nombre);
                 productosComprados++;                
-                sleep(3);
             } 
         }
     } 
-
-    
-
     if (!productoCorrecto) {
-            printf("\nProducto no encontrado. Ingrese nuevamente...\n");
-            sleep(2);
-        }
-
-
-
-    
+        printf("\nProducto no encontrado.\n");
+        sleep(2);
+        return productosComprados;
+        
+    }    
     printf("Ingrese cantidad: ");
     scanf("%d", &cantidadCompra);
 
-    listaCompra[productosComprados-1].cantidad = cantidadCompra;
-    productos[numeroProducto].cantidad -= cantidadCompra;
+    listaCompra[productosComprados-1].cantidad = cantidadCompra;                    // Se guarda la cantidad comprada
+    productos[numeroProducto].cantidad -= cantidadCompra;                           // Se resta la cantidad comprada al stock
 
-    listaCompra[productosComprados-1].precio = productos[numeroProducto].precio;
+    listaCompra[productosComprados-1].precio = productos[numeroProducto].precio;    // Se guarda el precio en listaCompra
     
-    printf("COMPRA PARCIAL \n\n\n\n\n\n");
-    for (int a = 0; a < productosComprados; a++)    {
-        printf("Nombre: %s\t", listaCompra[a].nombre);
-        printf("Codigo: %d\t", listaCompra[a].codigo);
-        printf("Cantidad: %d\t", listaCompra[a].cantidad);
-        printf("Precio: %d\t\n", listaCompra[a].precio);
-    }
-    
+    LIMPIAR;
+    printf("\t\t\t\t\tCOMPRA PARCIAL \n\n\n");
+    for (int indiceProducto = 0; indiceProducto < productosComprados; indiceProducto++)    {
+        printf("Nombre: %s\t", listaCompra[indiceProducto].nombre);
+        printf("Codigo: %d\t", listaCompra[indiceProducto].codigo);
+        printf("Cantidad: %d\t", listaCompra[indiceProducto].cantidad);
+        printf("Precio: %d\t\n", listaCompra[indiceProducto].precio);
+    }    
     sleep(5);
 
     return productosComprados;
-    //agregarProducto(cantidad, codigo[10], listaCompra);
 }
 
 
 
 void borrarProducto(){
-    // Modifica listaCompra para eliminar un producto o bajar su cantidad
+    LIMPIAR;
+    printf("Para borrar un producto de los escaneados,\n",
+    "por favor escanéelo nuevamente e ingrese una\n",
+    "cantidad negativa según corresponda");
+    sleep(5);
 }
 
-void terminarCompra(struct Producto listaCompra){
-    int precioFinal = 1000;
-    //
-    //printf("El total de su compra es: ", precioFinal)
-    pagarCompra(precioFinal);
-    
+void terminarCompra(struct Producto *listaCompra, int productosComprados){
+    int pagarTotal = 0;
+    for (int i = 0; i < productosComprados; i++) {
+        pagarTotal += listaCompra[i].precio * listaCompra[i].cantidad;
+    }
+    printf("El total de su compra es: %d pesos\t", pagarTotal);
+    sleep(2);
+    pagarCompra(pagarTotal);   
     
 }
 
-void pagarCompra(int precioFinal) {
-    int opcion;
-    printf("1_ Efectivo\n");
-    printf("2_ Tarjeta de credito\n");    
-    printf("3_ Tarjeta de debito\n");
-    
-    printf("Ingrese opcion: ");
-    scanf("%d", &opcion);
+void pagarCompra(int pagarTotal) {
+    int opcion = -1;
+    while (opcion != 0) {
+        LIMPIAR;
+        printf("El cliente debe pagar %d pesos. Seleccione metodo de pago:\n", pagarTotal);
+        printf("1_ Efectivo\n");
+        printf("2_ Tarjeta de crédito\n");
+        printf("3_ Tarjeta de débito\n");
+        printf("\n0_ Cancelar compra\n");
+        printf("Ingrese opción: ");
+        scanf("%d", &opcion);
 
-    switch (opcion){
-        case 1:
-            pagoEnEfectivo(precioFinal);
-            break;
-        case 2:
-            //pagoConTarjeta();
-            break;
-        case 3:
-            //pagoConTarjeta();
-            break;
+        switch (opcion) {
+            case 0:
+                break; 
+            case 1:
+                pagoEnEfectivo(pagarTotal);
+                break;
+            case 2:
+                //pagoConTarjeta();
+                break;
+            case 3:
+                //pagoConTarjeta();
+                break;
+            default:
+                printf("Opción incorrecta. Ingrese nuevamente.\n");
+                sleep(2);
+        }
+    }
+}
+
+
+void pagarCompra1(int pagarTotal) {
+    int opcion = -1;
+    while (opcion!= 0) {
+        LIMPIAR;
+        printf("El cliente debe pagar %d pesos. Seleccione metodo de pago:\n", pagarTotal);
+        printf("1_ Efectivo\n");
+        printf("2_ Tarjeta de credito\n");    
+        printf("3_ Tarjeta de debito\n");
+
+        printf("\n 0_ Cancelar compra");
+        
+        printf("Ingrese opcion: ");
+        scanf("%d", &opcion);
+    
+        switch (opcion){
+            case 0:
+                int confirmarCancelar = -1;
+                while (confirmarCancelar != 1 && confirmarCancelar != 2) {
+                    LIMPIAR;
+                    printf("¿Está seguro de que desea cancelar la compra?\n");                    
+                    printf("1_ Si\n");
+                    printf("2_ No\n");
+                    scanf("%d", &confirmarCancelar);
+                    if (confirmarCancelar == 0) {
+                        printf("Volviendo al menu...");
+                        sleep(2);
+                        mostrarMenuCajero();
+                        break;
+                    } else if(confirmarCancelar == 2) {
+                        //
+                    } else {
+                        printf("Opcion invalida. Ingrese 1 o 2.");
+                        sleep(2);
+                    }
+                }                
+                break;
+            case 1:
+                pagoEnEfectivo(pagarTotal);
+                break;
+            case 2:
+                //pagoConTarjeta();
+                break;
+            case 3:
+                //pagoConTarjeta();
+                break;
+            default:
+                printf("Opcion incorrecta. Ingrese nuevamente");
+                sleep(2);
+            }
     }
 }
 
@@ -424,14 +492,10 @@ void pagoEnEfectivo(int precioFinal){
     scanf("%d", &efectivo);
     vuelto = efectivo - precioFinal;
     printf("Devolver al cliente %d pesos", vuelto);
+    sleep(3);
+    mostrarMenuCajero();
 }
 
-void agregarProducto(int cantidadProducto, int codigoProducto, struct Producto listaCompra[50]){
-    // Agregar Producto a la lista de compra
-    
-
-
-}
 
 void cancelarCompra(){
     // TODO
